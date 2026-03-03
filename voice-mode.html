@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>Harmony Hub · voice mode · Lakshmi Paati</title>
+  <style>
+    /* GLOBAL RESET & DESIGN TOKENS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      /* soft muted teal gradient - calm and focused */
+      background: linear-gradient(145deg, #5DA9A4 0%, #4A8B86 100%);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      margin: 0;
+      transition: all 0.4s ease-in-out;
+    }
+
+    /* dimmed background when recording */
+    body.listening {
+      background: linear-gradient(145deg, #4A8B86 0%, #3A736E 100%);
+    }
+
+    /* main container – fully responsive */
+    .voice-mode {
+      width: 100%;
+      max-width: 600px;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      padding: 20px 16px;
+    }
+
+    /* 🔝 HEADER with back arrow */
+    .header-control {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .back-arrow {
+      font-size: clamp(36px, 10vw, 48px);
+      line-height: 1;
+      color: #FFFFFF;
+      text-decoration: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 8px 8px 0;
+      background: none;
+      border: none;
+      opacity: 0.9;
+    }
+
+    .back-arrow:active {
+      transform: scale(0.9);
+    }
+
+    .header-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #FFFFFF;
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 600;
+      white-space: nowrap;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    @media (max-width: 380px) {
+      .header-title {
+        font-size: 22px;
+        white-space: normal;
+        text-align: center;
+        width: 100%;
+        position: static;
+        transform: none;
+        margin-left: 10px;
+      }
+      .header-control {
+        justify-content: flex-start;
+      }
+    }
+
+    /* 🎤 CENTER - LARGE MICROPHONE BUTTON */
+    .mic-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin: 20px 0 10px;
+      position: relative;
+    }
+
+    .mic-button {
+      width: clamp(150px, 40vw, 200px);
+      height: clamp(150px, 40vw, 200px);
+      border-radius: 50%;
+      background-color: #F4C430; /* mustard */
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(244, 196, 48, 0.5);
+      transition: all 0.3s ease-in-out;
+      position: relative;
+      z-index: 2;
+    }
+
+    .mic-icon {
+      font-size: clamp(60px, 15vw, 80px);
+      line-height: 1;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+
+    /* ripple animation container */
+    .ripple-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .ripple {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      animation: rippleExpand 1.5s infinite ease-out;
+      opacity: 0;
+    }
+
+    .ripple:nth-child(2) {
+      animation-delay: 0.5s;
+    }
+
+    .ripple:nth-child(3) {
+      animation-delay: 1s;
+    }
+
+    @keyframes rippleExpand {
+      0% {
+        width: 100%;
+        height: 100%;
+        opacity: 0.7;
+      }
+      100% {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+      }
+    }
+
+    /* mic pulse animation when listening */
+    .mic-button.listening {
+      animation: softPulse 1.5s infinite ease-in-out;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 0 20px 5px rgba(244, 196, 48, 0.7);
+    }
+
+    @keyframes softPulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 0 20px 5px rgba(244, 196, 48, 0.5);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25), 0 0 30px 10px rgba(244, 196, 48, 0.8);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 0 20px 5px rgba(244, 196, 48, 0.5);
+      }
+    }
+
+    /* soft vibration simulation on tap */
+    .mic-button:active {
+      animation: softVibrate 0.1s ease-in-out;
+    }
+
+    @keyframes softVibrate {
+      0% { transform: scale(1); }
+      25% { transform: scale(0.98) rotate(0.5deg); }
+      50% { transform: scale(1.02) rotate(-0.5deg); }
+      75% { transform: scale(0.99) rotate(0.3deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    /* wave animation below mic */
+    .wave-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 50px;
+      margin-top: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .wave-container.visible {
+      opacity: 1;
+    }
+
+    .wave-bar {
+      width: 8px;
+      height: 20px;
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      animation: wave 1s infinite ease-in-out;
+    }
+
+    .wave-bar:nth-child(2) {
+      animation-delay: 0.2s;
+      height: 35px;
+    }
+
+    .wave-bar:nth-child(3) {
+      animation-delay: 0.4s;
+      height: 25px;
+    }
+
+    .wave-bar:nth-child(4) {
+      animation-delay: 0.1s;
+      height: 40px;
+    }
+
+    .wave-bar:nth-child(5) {
+      animation-delay: 0.3s;
+      height: 30px;
+    }
+
+    @keyframes wave {
+      0%, 100% {
+        transform: scaleY(0.5);
+        opacity: 0.6;
+      }
+      50% {
+        transform: scaleY(1.2);
+        opacity: 1;
+      }
+    }
+
+    /* listening hint text */
+    .listening-hint {
+      color: #FFFFFF;
+      font-size: 22px;
+      font-weight: 500;
+      margin-top: 15px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .listening-hint.visible {
+      opacity: 1;
+    }
+
+    /* 📝 RECOGNIZED TEXT CARD */
+    .result-card {
+      background-color: #FFFFFF;
+      border-radius: 30px;
+      padding: 30px 24px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 6px 12px rgba(0, 0, 0, 0.1);
+      margin: 20px 0 10px;
+      transition: all 0.3s ease;
+    }
+
+    .you-said-label {
+      font-size: 20px;
+      font-weight: 600;
+      color: #5DA9A4;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .you-said-text {
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 600;
+      color: #2E2E2E;
+      margin-bottom: 24px;
+      line-height: 1.3;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #F0F0F0;
+    }
+
+    .response-label {
+      font-size: 20px;
+      font-weight: 600;
+      color: #5DA9A4;
+      margin-bottom: 8px;
+    }
+
+    .response-text {
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 600;
+      color: #F4C430; /* mustard for success */
+      line-height: 1.3;
+    }
+
+    .response-text.error {
+      color: #E57373; /* soft red for errors */
+      font-size: clamp(22px, 5.5vw, 30px);
+    }
+
+    /* friendly tamil note */
+    .tamil-hint {
+      text-align: center;
+      font-size: 20px;
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 16px 24px;
+      border-radius: 60px;
+      margin-top: 16px;
+      backdrop-filter: blur(5px);
+      width: 100%;
+      font-weight: 500;
+    }
+
+    /* small note */
+    .note {
+      font-size: 18px;
+      color: rgba(255,255,255,0.8);
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    /* demo buttons for testing (not in final design) */
+    .demo-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .demo-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 40px;
+      font-size: 18px;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      transition: all 0.2s;
+    }
+
+    .demo-btn:active {
+      background: rgba(255,255,255,0.3);
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body>
+  <div class="voice-mode">
+
+    <!-- 🔝 HEADER with back arrow to dashboard -->
+    <div class="header-control">
+      <a href="dashboard.html" class="back-arrow" id="backArrow" aria-label="Go back to dashboard">←</a>
+      <div class="header-title">Voice Mode</div>
+    </div>
+
+    <!-- 🎤 CENTER - LARGE MICROPHONE BUTTON -->
+    <div class="mic-container">
+      <div class="ripple-container" id="rippleContainer">
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+      </div>
+      <button class="mic-button" id="micButton" aria-label="Voice control">
+        <span class="mic-icon">🎤</span>
+      </button>
+      
+      <!-- wave animation (visible when listening) -->
+      <div class="wave-container" id="waveContainer">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+
+      <!-- listening hint -->
+      <div class="listening-hint" id="listeningHint">Listening... sollunga</div>
+    </div>
+
+    <!-- 📝 RECOGNIZED TEXT CARD -->
+    <div class="result-card" id="resultCard">
+      <div class="you-said-label">You said:</div>
+      <div class="you-said-text" id="youSaidText">“Light on pannunga”</div>
+      
+      <div class="response-label">System response:</div>
+      <div class="response-text" id="responseText">Light is turned on.</div>
+    </div>
+
+    <!-- friendly tamil hint (shown on error) -->
+    <div class="tamil-hint" id="tamilHint" style="display: none;">
+      Konjam slow ah sollunga 🗣️
+    </div>
+
+    <!-- small note -->
+    <div class="note">press mic and speak slowly</div>
+
+    <!-- DEMO BUTTONS (for testing different responses) - can be removed in production -->
+    <div class="demo-buttons">
+      <button class="demo-btn" id="demoSuccess">✓ Success</button>
+      <button class="demo-btn" id="demoError">✗ Error</button>
+      <button class="demo-btn" id="demoListening">🎤 Listen</button>
+      <button class="demo-btn" id="demoStop">⏹ Stop</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // DOM elements
+      const micButton = document.getElementById('micButton');
+      const bodyEl = document.body;
+      const rippleContainer = document.getElementById('rippleContainer');
+      const waveContainer = document.getElementById('waveContainer');
+      const listeningHint = document.getElementById('listeningHint');
+      const youSaidText = document.getElementById('youSaidText');
+      const responseText = document.getElementById('responseText');
+      const tamilHint = document.getElementById('tamilHint');
+      const backArrow = document.getElementById('backArrow');
+
+      // Demo buttons
+      const demoSuccess = document.getElementById('demoSuccess');
+      const demoError = document.getElementById('demoError');
+      const demoListening = document.getElementById('demoListening');
+      const demoStop = document.getElementById('demoStop');
+
+      // State
+      let isListening = false;
+      let currentTimeout;
+
+      // Sample voice commands and responses
+      const commands = {
+        'light on': 'Light is turned on.',
+        'light off': 'Light is turned off.',
+        'tv on': 'TV is turned on.',
+        'tv off': 'TV is turned off.',
+        'fan on': 'Fan is turned on.',
+        'fan off': 'Fan is turned off.',
+        'ac on': 'AC is turned on.',
+        'ac off': 'AC is turned off.',
+        'plug on': 'Plug is turned on.',
+        'plug off': 'Plug is turned off.',
+        'volume up': 'Volume increased.',
+        'volume down': 'Volume decreased.',
+        'brightness up': 'Brightness increased.',
+        'brightness down': 'Brightness decreased.',
+      };
+
+      // Update UI for listening state
+      function setListening(state) {
+        isListening = state;
+        
+        if (state) {
+          bodyEl.classList.add('listening');
+          micButton.classList.add('listening');
+          waveContainer.classList.add('visible');
+          listeningHint.classList.add('visible');
+          // hide result card slightly dim? we keep as is
+        } else {
+          bodyEl.classList.remove('listening');
+          micButton.classList.remove('listening');
+          waveContainer.classList.remove('visible');
+          listeningHint.classList.remove('visible');
+        }
+      }
+
+      // Simulate voice recognition result
+      function simulateVoiceResult(success = true, command = '') {
+        if (success) {
+          // success case
+          if (command === '') {
+            // random success command
+            const commands_list = Object.keys(commands);
+            const randomCmd = commands_list[Math.floor(Math.random() * commands_list.length)];
+            youSaidText.textContent = `“${randomCmd}”`;
+            responseText.textContent = commands[randomCmd];
+          } else {
+            youSaidText.textContent = `“${command}”`;
+            responseText.textContent = commands[command.toLowerCase()] || 'Command executed.';
+          }
+          responseText.className = 'response-text';
+          tamilHint.style.display = 'none';
+        } else {
+          // error case
+          youSaidText.textContent = `“Mmm... sollunga?”`;
+          responseText.textContent = 'Konjam slow ah sollunga';
+          responseText.className = 'response-text error';
+          tamilHint.style.display = 'block';
+        }
+      }
+
+      // Clear any existing timeout
+      function clearExistingTimeout() {
+        if (currentTimeout) {
+          clearTimeout(currentTimeout);
+        }
+      }
+
+      // MIC BUTTON CLICK HANDLER
+      micButton.addEventListener('click', () => {
+        // simulate vibration via class (already in :active)
+        console.log('mic tapped');
+        
+        if (isListening) {
+          // Stop listening and show result
+          setListening(false);
+          
+          // Randomly choose success or error for demo (80% success)
+          const isSuccess = Math.random() < 0.8;
+          
+          if (isSuccess) {
+            // pick a random command
+            const commands_list = Object.keys(commands);
+            const randomCmd = commands_list[Math.floor(Math.random() * commands_list.length)];
+            youSaidText.textContent = `“${randomCmd}”`;
+            responseText.textContent = commands[randomCmd];
+            responseText.className = 'response-text';
+            tamilHint.style.display = 'none';
+          } else {
+            // error
+            youSaidText.textContent = `“......”`;
+            responseText.textContent = 'Konjam slow ah sollunga';
+            responseText.className = 'response-text error';
+            tamilHint.style.display = 'block';
+          }
+        } else {
+          // Start listening
+          setListening(true);
+          
+          // Auto-stop after 3 seconds for demo
+          clearExistingTimeout();
+          currentTimeout = setTimeout(() => {
+            if (isListening) {
+              setListening(false);
+              
+              // 80% success
+              const isSuccess = Math.random() < 0.8;
+              
+              if (isSuccess) {
+                const commands_list = Object.keys(commands);
+                const randomCmd = commands_list[Math.floor(Math.random() * commands_list.length)];
+                youSaidText.textContent = `“${randomCmd}”`;
+                responseText.textContent = commands[randomCmd];
+                responseText.className = 'response-text';
+                tamilHint.style.display = 'none';
+              } else {
+                youSaidText.textContent = `“......”`;
+                responseText.textContent = 'Konjam slow ah sollunga';
+                responseText.className = 'response-text error';
+                tamilHint.style.display = 'block';
+              }
+            }
+          }, 3000);
+        }
+      });
+
+      // DEMO BUTTON HANDLERS
+      demoSuccess.addEventListener('click', () => {
+        setListening(false);
+        clearExistingTimeout();
+        
+        // Show success with a random command
+        const commands_list = Object.keys(commands);
+        const randomCmd = commands_list[Math.floor(Math.random() * commands_list.length)];
+        youSaidText.textContent = `“${randomCmd}”`;
+        responseText.textContent = commands[randomCmd];
+        responseText.className = 'response-text';
+        tamilHint.style.display = 'none';
+      });
+
+      demoError.addEventListener('click', () => {
+        setListening(false);
+        clearExistingTimeout();
+        
+        // Show error
+        youSaidText.textContent = `“......”`;
+        responseText.textContent = 'Konjam slow ah sollunga';
+        responseText.className = 'response-text error';
+        tamilHint.style.display = 'block';
+      });
+
+      demoListening.addEventListener('click', () => {
+        setListening(true);
+        clearExistingTimeout();
+        
+        // Auto-stop after 3 seconds
+        currentTimeout = setTimeout(() => {
+          if (isListening) {
+            setListening(false);
+            
+            // 80% success
+            const isSuccess = Math.random() < 0.8;
+            
+            if (isSuccess) {
+              const commands_list = Object.keys(commands);
+              const randomCmd = commands_list[Math.floor(Math.random() * commands_list.length)];
+              youSaidText.textContent = `“${randomCmd}”`;
+              responseText.textContent = commands[randomCmd];
+              responseText.className = 'response-text';
+              tamilHint.style.display = 'none';
+            } else {
+              youSaidText.textContent = `“......”`;
+              responseText.textContent = 'Konjam slow ah sollunga';
+              responseText.className = 'response-text error';
+              tamilHint.style.display = 'block';
+            }
+          }
+        }, 3000);
+      });
+
+      demoStop.addEventListener('click', () => {
+        setListening(false);
+        clearExistingTimeout();
+      });
+
+      // Back arrow navigation
+      backArrow.addEventListener('click', (e) => {
+        console.log('navigating to dashboard.html');
+      });
+
+      // Initialize with a default success message
+      // Already set in HTML
+    })();
+  </script>
+
+  <!-- design fully respects:
+    - Background: soft muted teal gradient (#5DA9A4 → #4A8B86)
+    - Large mic button (150px+), mustard (#F4C430), white icon
+    - Ripple animation on press
+    - Pulse animation when listening
+    - Wave animation below mic
+    - Background dims when listening (body.listening)
+    - Result card with "You said:" and "System response:"
+    - Friendly error message in Tamil: "Konjam slow ah sollunga"
+    - No harsh errors
+    - Fully responsive
+    - Back arrow to dashboard.html
+  -->
+</body>
+</html>

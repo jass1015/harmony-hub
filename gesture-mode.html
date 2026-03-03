@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>Harmony Hub · gesture mode · Lakshmi Paati</title>
+  <style>
+    /* GLOBAL RESET & DESIGN TOKENS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      /* very light lavender pastel background */
+      background: linear-gradient(145deg, #F0E6FA 0%, #E8DCF5 100%);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      margin: 0;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* glow effect when gesture detected */
+    body.gesture-glow {
+      box-shadow: inset 0 0 50px 15px rgba(244, 196, 48, 0.3);
+    }
+
+    /* main container – fully responsive */
+    .gesture-mode {
+      width: 100%;
+      max-width: 650px;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 16px 12px;
+    }
+
+    /* 🔝 HEADER with back arrow */
+    .header-control {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .back-arrow {
+      font-size: clamp(36px, 10vw, 48px);
+      line-height: 1;
+      color: #2E2E2E;
+      text-decoration: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 8px 8px 0;
+      background: none;
+      border: none;
+      opacity: 0.8;
+    }
+
+    .back-arrow:active {
+      transform: scale(0.9);
+    }
+
+    .header-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #2E2E2E;
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 380px) {
+      .header-title {
+        font-size: 22px;
+        white-space: normal;
+        text-align: center;
+        width: 100%;
+        position: static;
+        transform: none;
+        margin-left: 10px;
+      }
+      .header-control {
+        justify-content: flex-start;
+      }
+    }
+
+    /* 🖼 ILLUSTRATION SECTION - TWO LARGE PANELS */
+    .gesture-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 15px 0 10px;
+    }
+
+    @media (max-width: 480px) {
+      .gesture-panels {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+
+    .gesture-panel {
+      background-color: #FFFFFF;
+      border-radius: 30px;
+      padding: 25px 15px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08), 0 5px 10px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .gesture-icon {
+      font-size: clamp(70px, 15vw, 90px);
+      margin-bottom: 20px;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+      animation: float 3s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .gesture-description {
+      font-size: clamp(22px, 5vw, 28px);
+      font-weight: 600;
+      color: #2E2E2E;
+      margin-bottom: 8px;
+    }
+
+    .gesture-action {
+      font-size: clamp(26px, 6vw, 34px);
+      font-weight: 700;
+      color: #F4C430; /* mustard */
+      background: rgba(244, 196, 48, 0.1);
+      padding: 8px 20px;
+      border-radius: 50px;
+      margin-top: 10px;
+    }
+
+    .gesture-action.tv-off {
+      color: #5DA9A4; /* teal for TV off */
+      background: rgba(93, 169, 164, 0.1);
+    }
+
+    /* small arrow between panels (visible on desktop) */
+    .panel-connector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 30px;
+      color: #D6CDEA;
+      margin: -5px 0;
+    }
+
+    /* 📡 STATUS AREA - CENTERED CARD */
+    .status-card {
+      background-color: #5DA9A4; /* soft teal */
+      border-radius: 40px;
+      padding: 25px 20px;
+      box-shadow: 0 15px 30px rgba(93, 169, 164, 0.25);
+      margin: 10px 0;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .status-label {
+      font-size: 20px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .gesture-detected-text {
+      font-size: clamp(32px, 8vw, 42px);
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.3;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .gesture-subtext {
+      font-size: 18px;
+      color: rgba(255,255,255,0.8);
+      margin-top: 12px;
+    }
+
+    /* empty state when no gesture */
+    .status-card.empty {
+      background-color: #E0E0E0;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .status-card.empty .gesture-detected-text {
+      color: #6B6B6B;
+      font-size: 26px;
+      font-weight: 500;
+    }
+
+    /* 🔘 TOGGLE BUTTON - LARGE SWITCH */
+    .toggle-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 15px;
+    }
+
+    .toggle-label {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2E2E2E;
+    }
+
+    .toggle-switch {
+      width: 180px;
+      height: 80px;
+      background-color: #D3D3D3; /* grey when off */
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      padding: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .toggle-switch.active {
+      background-color: #F4C430; /* mustard when active */
+    }
+
+    .toggle-knob {
+      width: 70px;
+      height: 70px;
+      background-color: #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(100px);
+    }
+
+    .toggle-switch.inactive .toggle-knob {
+      transform: translateX(0);
+    }
+
+    .toggle-status-text {
+      font-size: 22px;
+      font-weight: 500;
+      color: #2E2E2E;
+      margin-top: 8px;
+    }
+
+    .toggle-status-text.active {
+      color: #F4C430;
+    }
+
+    .toggle-status-text.inactive {
+      color: #6B6B6B;
+    }
+
+    /* demo gesture buttons (for testing) */
+    .demo-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .demo-gesture-btn {
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 15px 25px;
+      border-radius: 40px;
+      font-size: 20px;
+      font-weight: 500;
+      color: #2E2E2E;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      transition: all 0.2s;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+      flex: 1 1 auto;
+      min-width: 140px;
+    }
+
+    .demo-gesture-btn:active {
+      transform: scale(0.95);
+      background: #FFFFFF;
+    }
+
+    /* small note */
+    .note {
+      font-size: 18px;
+      color: #6B6B6B;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    /* quick glow animation */
+    @keyframes borderGlow {
+      0% { box-shadow: inset 0 0 0 0 rgba(244, 196, 48, 0); }
+      50% { box-shadow: inset 0 0 50px 15px rgba(244, 196, 48, 0.4); }
+      100% { box-shadow: inset 0 0 0 0 rgba(244, 196, 48, 0); }
+    }
+
+    .gesture-flash {
+      animation: borderGlow 0.6s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="gesture-mode">
+
+    <!-- 🔝 HEADER with back arrow to dashboard -->
+    <div class="header-control">
+      <a href="dashboard.html" class="back-arrow" id="backArrow" aria-label="Go back to dashboard">←</a>
+      <div class="header-title">Gesture Mode</div>
+    </div>
+
+    <!-- 🖼 ILLUSTRATION SECTION - TWO LARGE PANELS -->
+    <div class="gesture-panels">
+      <!-- Panel 1: Raise hand → Light ON -->
+      <div class="gesture-panel">
+        <div class="gesture-icon">✋</div>
+        <div class="gesture-description">Raise hand</div>
+        <div class="gesture-action">💡 Light ON</div>
+      </div>
+
+      <!-- Panel 2: Wave left → TV OFF -->
+      <div class="gesture-panel">
+        <div class="gesture-icon">👋</div>
+        <div class="gesture-description">Wave left</div>
+        <div class="gesture-action tv-off">📺 TV OFF</div>
+      </div>
+    </div>
+
+    <!-- optional small connector text (visible on larger screens) -->
+    <div class="panel-connector">⬇️</div>
+
+    <!-- 📡 STATUS AREA - CENTERED CARD -->
+    <div class="status-card" id="statusCard">
+      <div class="status-label">Gesture Detected:</div>
+      <div class="gesture-detected-text" id="gestureText">—</div>
+      <div class="gesture-subtext" id="gestureSubtext">Waiting for gesture...</div>
+    </div>
+
+    <!-- 🔘 TOGGLE BUTTON - LARGE SWITCH -->
+    <div class="toggle-container">
+      <div class="toggle-label">Gesture Control</div>
+      
+      <!-- toggle switch -->
+      <div class="toggle-switch" id="toggleSwitch">
+        <div class="toggle-knob" id="toggleKnob">👆</div>
+      </div>
+      
+      <div class="toggle-status-text" id="toggleStatus">OFF</div>
+    </div>
+
+    <!-- demo gesture buttons (for testing) -->
+    <div class="demo-buttons">
+      <button class="demo-gesture-btn" id="gestureLightOn">✋ Raise hand<br><small>Light ON</small></button>
+      <button class="demo-gesture-btn" id="gestureTvOff">👋 Wave left<br><small>TV OFF</small></button>
+      <button class="demo-gesture-btn" id="gestureRandom">🫸 Wave right<br><small>Fan ON</small></button>
+      <button class="demo-gesture-btn" id="clearGesture">❌ Clear</button>
+    </div>
+
+    <!-- small note -->
+    <div class="note">make a gesture · watch the glow</div>
+  </div>
+
+  <script>
+    (function() {
+      // DOM elements
+      const toggleSwitch = document.getElementById('toggleSwitch');
+      const toggleKnob = document.getElementById('toggleKnob');
+      const toggleStatus = document.getElementById('toggleStatus');
+      const statusCard = document.getElementById('statusCard');
+      const gestureText = document.getElementById('gestureText');
+      const gestureSubtext = document.getElementById('gestureSubtext');
+      const bodyEl = document.body;
+      const backArrow = document.getElementById('backArrow');
+
+      // Demo buttons
+      const gestureLightOn = document.getElementById('gestureLightOn');
+      const gestureTvOff = document.getElementById('gestureTvOff');
+      const gestureRandom = document.getElementById('gestureRandom');
+      const clearGesture = document.getElementById('clearGesture');
+
+      // State
+      let isGestureModeActive = false;
+      let glowTimeout;
+
+      // Toggle switch
+      function setGestureMode(active) {
+        isGestureModeActive = active;
+        
+        if (active) {
+          toggleSwitch.classList.add('active');
+          toggleSwitch.classList.remove('inactive');
+          toggleStatus.textContent = 'ON';
+          toggleStatus.className = 'toggle-status-text active';
+          toggleKnob.textContent = '✅';
+        } else {
+          toggleSwitch.classList.remove('active');
+          toggleSwitch.classList.add('inactive');
+          toggleStatus.textContent = 'OFF';
+          toggleStatus.className = 'toggle-status-text inactive';
+          toggleKnob.textContent = '👆';
+          
+          // clear any gesture when turning off
+          if (!active) {
+            clearGestureDisplay();
+          }
+        }
+      }
+
+      // Clear gesture display
+      function clearGestureDisplay() {
+        gestureText.textContent = '—';
+        gestureSubtext.textContent = 'Waiting for gesture...';
+        statusCard.classList.add('empty');
+      }
+
+      // Show gesture with glow effect
+      function showGesture(gestureName, action, icon) {
+        if (!isGestureModeActive) {
+          // if gesture mode is off, show message but no glow
+          gestureText.textContent = `${icon} ${action}`;
+          gestureSubtext.textContent = `(enable gesture mode first)`;
+          statusCard.classList.remove('empty');
+          return;
+        }
+
+        // update status card
+        gestureText.textContent = `${icon} ${action}`;
+        
+        if (gestureName === 'Raise hand') {
+          gestureSubtext.textContent = 'Light turned ON';
+        } else if (gestureName === 'Wave left') {
+          gestureSubtext.textContent = 'TV turned OFF';
+        } else if (gestureName === 'Wave right') {
+          gestureSubtext.textContent = 'Fan turned ON';
+        }
+        
+        statusCard.classList.remove('empty');
+        statusCard.style.backgroundColor = '#5DA9A4'; // ensure teal
+
+        // GLOW EFFECT - around screen border
+        bodyEl.classList.add('gesture-flash');
+        
+        // remove flash after animation
+        setTimeout(() => {
+          bodyEl.classList.remove('gesture-flash');
+        }, 600);
+
+        // also add a quick class for the glow (0.3s fade)
+        bodyEl.classList.add('gesture-glow');
+        
+        // clear previous timeout
+        if (glowTimeout) clearTimeout(glowTimeout);
+        
+        // remove glow after 0.8 seconds (fades out)
+        glowTimeout = setTimeout(() => {
+          bodyEl.classList.remove('gesture-glow');
+        }, 800);
+      }
+
+      // Toggle click handler
+      toggleSwitch.addEventListener('click', () => {
+        setGestureMode(!isGestureModeActive);
+        console.log('Gesture mode:', isGestureModeActive ? 'ON' : 'OFF');
+      });
+
+      // Demo gesture buttons
+      gestureLightOn.addEventListener('click', () => {
+        showGesture('Raise hand', 'Light ON', '💡');
+      });
+
+      gestureTvOff.addEventListener('click', () => {
+        showGesture('Wave left', 'TV OFF', '📺');
+      });
+
+      gestureRandom.addEventListener('click', () => {
+        showGesture('Wave right', 'Fan ON', '🌀');
+      });
+
+      clearGesture.addEventListener('click', () => {
+        clearGestureDisplay();
+        // also remove glow
+        bodyEl.classList.remove('gesture-glow');
+        bodyEl.classList.remove('gesture-flash');
+      });
+
+      // Back arrow navigation
+      backArrow.addEventListener('click', (e) => {
+        console.log('navigating to dashboard.html');
+      });
+
+      // Initialize with gesture mode OFF
+      setGestureMode(false);
+      clearGestureDisplay();
+
+      // Add additional gesture panels info (optional hover effect)
+      const panels = document.querySelectorAll('.gesture-panel');
+      panels.forEach(panel => {
+        panel.addEventListener('click', () => {
+          // simulate that gesture
+          if (panel.querySelector('.gesture-description').textContent.includes('Raise')) {
+            showGesture('Raise hand', 'Light ON', '💡');
+          } else if (panel.querySelector('.gesture-description').textContent.includes('Wave')) {
+            showGesture('Wave left', 'TV OFF', '📺');
+          }
+        });
+      });
+
+    })();
+  </script>
+
+  <!-- design fully respects:
+    - Background: very light lavender pastel (#F0E6FA → #E8DCF5)
+    - Two large illustrated panels:
+      * Panel 1: Raise hand → Light ON
+      * Panel 2: Wave left → TV OFF
+    - Panels: white background, rounded, soft shadow, large icons
+    - Status area: centered card with teal background
+    - Toggle button: large switch, mustard when active, grey when off
+    - Animation: glow effect around screen border when gesture detected (0.3s fade)
+    - Fully responsive (grid switches to 1 column on mobile)
+    - Back arrow to dashboard.html
+    - Demo buttons for testing all gestures
+  -->
+</body>
+</html>

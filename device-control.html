@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>Harmony Hub · device control</title>
+  <style>
+    /* GLOBAL RESET & DESIGN TOKENS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      /* very soft pastel gradient: beige → very light peach */
+      background: linear-gradient(145deg, #F8F0E3 0%, #FCE9DA 100%);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      margin: 0;
+      transition: background 0.4s ease-in-out;
+    }
+
+    /* warm background variation (applied when ON) */
+    body.warm-bg {
+      background: linear-gradient(145deg, #FFEFD2 0%, #FFE3C9 100%);
+    }
+
+    /* main container – fully responsive */
+    .device-control {
+      width: 100%;
+      max-width: 550px;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      padding: 16px 12px;
+    }
+
+    /* ---------- TYPOGRAPHY ---------- */
+    .device-name-header {
+      font-size: clamp(28px, 8vw, 36px);
+      font-weight: 600;
+      color: #2E2E2E;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .device-icon-header {
+      font-size: clamp(32px, 8vw, 40px);
+    }
+
+    .back-arrow {
+      font-size: clamp(36px, 10vw, 48px);
+      line-height: 1;
+      color: #2E2E2E;
+      text-decoration: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 8px 8px 0;
+      background: none;
+      border: none;
+    }
+
+    .back-arrow:active {
+      transform: scale(0.9);
+    }
+
+    /* ---------- HEADER (back arrow left, title centered) ---------- */
+    .header-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .header-control .back-arrow {
+      margin-right: auto;
+      z-index: 2;
+    }
+
+    .header-control .device-name-header {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      z-index: 1;
+    }
+
+    /* small screen adjustment */
+    @media (max-width: 380px) {
+      .header-control {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+      .header-control .back-arrow {
+        margin-right: 0;
+        position: relative;
+        left: -10px;
+      }
+      .header-control .device-name-header {
+        position: static;
+        transform: none;
+        white-space: normal;
+        font-size: 28px;
+      }
+    }
+
+    /* ---------- TWO LARGE CIRCULAR BUTTONS (40px gap) ---------- */
+    .circle-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin: 20px 0 30px;
+    }
+
+    .circle-btn {
+      width: clamp(130px, 35vw, 180px);
+      height: clamp(130px, 35vw, 180px);
+      border-radius: 50%;
+      border: none;
+      font-size: clamp(32px, 8vw, 42px);
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.3s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #D3D3D3; /* soft grey default */
+      color: #2E2E2E;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .circle-btn.on-btn {
+      background-color: #F4C430; /* mustard */
+      color: #FFFFFF;
+      box-shadow: 0 8px 20px rgba(244, 196, 48, 0.4);
+    }
+
+    .circle-btn.off-btn {
+      background-color: #D3D3D3;
+      color: #2E2E2E;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    }
+
+    /* pulse animation for ON button */
+    .pulse-glow {
+      animation: softPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes softPulse {
+      0% {
+        box-shadow: 0 8px 20px rgba(244, 196, 48, 0.4), 0 0 0 0 rgba(244, 196, 48, 0.3);
+      }
+      50% {
+        box-shadow: 0 12px 28px rgba(244, 196, 48, 0.7), 0 0 0 10px rgba(244, 196, 48, 0.1);
+      }
+      100% {
+        box-shadow: 0 8px 20px rgba(244, 196, 48, 0.4), 0 0 0 0 rgba(244, 196, 48, 0.3);
+      }
+    }
+
+    .circle-btn:active {
+      transform: scale(0.95);
+      transition: transform 0.2s;
+    }
+
+    /* ---------- SLIDER SECTION ---------- */
+    .slider-container {
+      width: 100%;
+      padding: 16px 8px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 40px;
+      margin: 10px 0;
+    }
+
+    .slider-label {
+      font-size: clamp(20px, 6vw, 26px);
+      font-weight: 600;
+      color: #2E2E2E;
+      margin-bottom: 18px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .slider-icon {
+      font-size: clamp(24px, 6vw, 30px);
+    }
+
+    .large-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 16px;
+      background: #E0E0E0;
+      border-radius: 30px;
+      outline: none;
+      position: relative;
+    }
+
+    .large-slider::-webkit-slider-runnable-track {
+      height: 16px;
+      background: linear-gradient(to right, #5DA9A4 0%, #5DA9A4 var(--fill-percent, 50%), #E0E0E0 var(--fill-percent, 50%));
+      border-radius: 30px;
+    }
+
+    .large-slider::-moz-range-track {
+      height: 16px;
+      background: #E0E0E0;
+      border-radius: 30px;
+    }
+
+    .large-slider::-moz-range-progress {
+      height: 16px;
+      background: #5DA9A4;
+      border-radius: 30px;
+    }
+
+    .large-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 36px;
+      height: 36px;
+      background: #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+      margin-top: -10px;
+      cursor: pointer;
+      border: 2px solid #F4C430;
+      transition: transform 0.15s;
+    }
+
+    .large-slider::-webkit-slider-thumb:active {
+      transform: scale(1.1);
+    }
+
+    .large-slider::-moz-range-thumb {
+      width: 36px;
+      height: 36px;
+      background: #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      border: 2px solid #F4C430;
+    }
+
+    .large-slider {
+      --fill-percent: 50%;
+    }
+
+    .slider-value {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: #5DA9A4;
+      margin-top: 16px;
+    }
+
+    /* ---------- DEVICE INFO CARD (optional) ---------- */
+    .device-info {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 20px;
+      padding: 16px;
+      text-align: center;
+      backdrop-filter: blur(5px);
+      margin: 10px 0;
+    }
+
+    .device-status-text {
+      font-size: 20px;
+      color: #6B6B6B;
+    }
+
+    .device-status-value {
+      font-weight: 700;
+      color: #F4C430;
+      font-size: 24px;
+    }
+
+    /* ---------- TOAST NOTIFICATION ---------- */
+    .toast-message {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background-color: #2E2E2E;
+      color: #FFFFFF;
+      font-size: 20px;
+      font-weight: 500;
+      padding: 16px 32px;
+      border-radius: 60px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, visibility 0.4s;
+      z-index: 1000;
+      white-space: nowrap;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast-message.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 450px) {
+      .toast-message {
+        font-size: 18px;
+        padding: 14px 24px;
+        bottom: 20px;
+      }
+    }
+
+    /* small note */
+    .note {
+      font-size: 16px;
+      color: #6B6B6B;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="device-control">
+
+    <!-- 🔝 HEADER with back arrow (left) and centered device name + icon -->
+    <div class="header-control">
+      <a href="dashboard.html" class="back-arrow" id="backArrow" aria-label="Go back to dashboard">←</a>
+      <div class="device-name-header" id="deviceNameHeader">
+        <span id="deviceIcon" class="device-icon-header">💡</span>
+        <span id="deviceName">Light</span>
+      </div>
+    </div>
+
+    <!-- 🟡 CENTER – two large circular buttons (ON / OFF) with 40px gap -->
+    <div class="circle-buttons">
+      <button class="circle-btn on-btn" id="onBtn" aria-label="turn on">ON</button>
+      <button class="circle-btn off-btn" id="offBtn" aria-label="turn off">OFF</button>
+    </div>
+
+    <!-- 🎚 SLIDER SECTION (dynamic label based on device) -->
+    <div class="slider-container">
+      <div class="slider-label" id="sliderLabel">
+        <span id="sliderIcon" class="slider-icon">🔆</span>
+        <span id="sliderText">Brightness</span>
+      </div>
+      <input type="range" min="0" max="100" value="70" class="large-slider" id="mainSlider">
+      <div class="slider-value" id="sliderValue">70%</div>
+    </div>
+
+    <!-- Device status info -->
+    <div class="device-info">
+      <span class="device-status-text">Status: <span id="deviceStatus" class="device-status-value">ON</span></span>
+    </div>
+
+    <!-- subtle note -->
+    <div class="note">tap ON / OFF · slider adjusts</div>
+  </div>
+
+  <!-- TOAST (hidden by default) -->
+  <div class="toast-message" id="toast">Device turned on successfully</div>
+
+  <script>
+    (function() {
+      // DOM elements
+      const onBtn = document.getElementById('onBtn');
+      const offBtn = document.getElementById('offBtn');
+      const bodyEl = document.body;
+      const toast = document.getElementById('toast');
+      const slider = document.getElementById('mainSlider');
+      const sliderValue = document.getElementById('sliderValue');
+      const deviceNameSpan = document.getElementById('deviceName');
+      const deviceIconSpan = document.getElementById('deviceIcon');
+      const sliderIconSpan = document.getElementById('sliderIcon');
+      const sliderTextSpan = document.getElementById('sliderText');
+      const deviceStatusSpan = document.getElementById('deviceStatus');
+
+      // Get device from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const device = urlParams.get('device') || 'light'; // default to light
+      
+      // Device configurations
+      const deviceConfig = {
+        light: {
+          name: 'Light',
+          icon: '💡',
+          sliderIcon: '🔆',
+          sliderLabel: 'Brightness',
+          unit: '%',
+          min: 0,
+          max: 100,
+          default: 70
+        },
+        tv: {
+          name: 'TV',
+          icon: '📺',
+          sliderIcon: '🔊',
+          sliderLabel: 'Volume',
+          unit: '%',
+          min: 0,
+          max: 100,
+          default: 50
+        },
+        fan: {
+          name: 'Fan',
+          icon: '🌀',
+          sliderIcon: '⚡',
+          sliderLabel: 'Speed',
+          unit: '%',
+          min: 0,
+          max: 100,
+          default: 60
+        },
+        ac: {
+          name: 'AC',
+          icon: '❄️',
+          sliderIcon: '🌡️',
+          sliderLabel: 'Temperature',
+          unit: '°C',
+          min: 16,
+          max: 30,
+          default: 24
+        },
+        plug: {
+          name: 'Plug',
+          icon: '🔌',
+          sliderIcon: '⚡',
+          sliderLabel: 'Power',
+          unit: '%',
+          min: 0,
+          max: 100,
+          default: 100
+        }
+      };
+
+      // Get config for current device (default to light if not found)
+      const config = deviceConfig[device] || deviceConfig.light;
+      
+      // Update UI based on device
+      deviceNameSpan.textContent = config.name;
+      deviceIconSpan.textContent = config.icon;
+      sliderIconSpan.textContent = config.sliderIcon;
+      sliderTextSpan.textContent = config.sliderLabel;
+      
+      // Set slider attributes
+      slider.min = config.min;
+      slider.max = config.max;
+      slider.value = config.default;
+      
+      // Update slider value display
+      function updateSliderDisplay() {
+        const val = slider.value;
+        sliderValue.textContent = val + config.unit;
+        slider.style.setProperty('--fill-percent', ((val - config.min) / (config.max - config.min) * 100) + '%');
+      }
+      
+      // state
+      let powerOn = true;   // start with ON active
+      let toastTimeout;
+
+      // update UI based on power state
+      function updatePowerUI() {
+        if (powerOn) {
+          // ON active
+          onBtn.classList.add('pulse-glow');
+          onBtn.style.backgroundColor = '#F4C430';
+          offBtn.style.backgroundColor = '#D3D3D3';
+          offBtn.classList.remove('pulse-glow');
+          bodyEl.classList.add('warm-bg');
+          deviceStatusSpan.textContent = 'ON';
+          deviceStatusSpan.style.color = '#F4C430';
+        } else {
+          // OFF active
+          onBtn.classList.remove('pulse-glow');
+          onBtn.style.backgroundColor = '#D3D3D3';
+          offBtn.style.backgroundColor = '#D3D3D3';
+          offBtn.classList.remove('pulse-glow');
+          bodyEl.classList.remove('warm-bg');
+          deviceStatusSpan.textContent = 'OFF';
+          deviceStatusSpan.style.color = '#E57373'; // soft red for off
+        }
+      }
+
+      // show toast
+      function showToast(message) {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2400);
+      }
+
+      // initial UI
+      powerOn = true;
+      updatePowerUI();
+      bodyEl.classList.add('warm-bg');
+      updateSliderDisplay();
+
+      // ON button click
+      onBtn.addEventListener('click', () => {
+        if (!powerOn) {
+          powerOn = true;
+          updatePowerUI();
+          showToast(`${config.name} turned on successfully`);
+        } else {
+          showToast(`${config.name} is already on`);
+        }
+      });
+
+      // OFF button click
+      offBtn.addEventListener('click', () => {
+        if (powerOn) {
+          powerOn = false;
+          updatePowerUI();
+          showToast(`${config.name} turned off`);
+        } else {
+          showToast(`${config.name} is already off`);
+        }
+      });
+
+      // slider update
+      slider.addEventListener('input', updateSliderDisplay);
+
+      // back arrow is a direct link to dashboard.html
+      backArrow.addEventListener('click', (e) => {
+        console.log('navigating to dashboard.html');
+      });
+
+      // For demo: simulate different devices by adding URL params
+      // Examples: device-control.html?device=light
+      //           device-control.html?device=tv
+      //           device-control.html?device=fan
+      //           device-control.html?device=ac
+      //           device-control.html?device=plug
+    })();
+  </script>
+</body>
+</html>

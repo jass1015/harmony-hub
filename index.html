@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>Harmony Hub · Lakshmi Paati</title>
+  <style>
+    /* GLOBAL DESIGN SYSTEM */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #FFE4E1 0%, #FFD9E8 30%, #D4F1F9 100%);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      transition: all 0.3s ease;
+    }
+
+    /* Text size classes */
+    body.text-small { font-size: 16px; }
+    body.text-medium { font-size: 20px; }
+    body.text-large { font-size: 24px; }
+
+    .dashboard {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 16px 12px;
+      position: relative;
+    }
+
+    /* ========== HEADER ========== */
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      margin-bottom: 20px;
+    }
+
+    .greeting {
+      font-size: clamp(24px, 7vw, 32px);
+      color: #2E2E2E;
+      font-weight: 600;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Language pill */
+    .lang-pill {
+      background-color: #FFFFFF;
+      border-radius: 40px;
+      padding: 4px;
+      display: flex;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .lang-option {
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 18px;
+      font-weight: 500;
+      color: #2E2E2E;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .lang-option.active {
+      background-color: #F4C430;
+      color: #2E2E2E;
+    }
+
+    /* Hamburger menu button */
+    .menu-btn {
+      width: 50px;
+      height: 50px;
+      background-color: #FFFFFF;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: none;
+    }
+
+    .menu-btn span {
+      width: 24px;
+      height: 3px;
+      background-color: #2E2E2E;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+
+    /* ========== DEVICE GRID ========== */
+    .device-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    @media (max-width: 480px) {
+      .device-grid {
+        gap: 15px;
+      }
+    }
+
+    .device-card {
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      padding: 20px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #2E2E2E;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .device-card:active {
+      transform: scale(0.97);
+    }
+
+    .card-icon {
+      font-size: 50px;
+      margin-bottom: 10px;
+    }
+
+    .device-name {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .device-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: #D3D3D3;
+    }
+
+    .status-dot.on {
+      background-color: #F4C430;
+    }
+
+    .status-text {
+      font-size: 18px;
+      color: #6B6B6B;
+    }
+
+    .status-text.on {
+      color: #F4C430;
+      font-weight: 600;
+    }
+
+    /* ========== HAMBURGER MENU PANEL ========== */
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .menu-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .menu-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 85%;
+      max-width: 380px;
+      height: 100vh;
+      background-color: #FFFFFF;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+      z-index: 1001;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .menu-overlay.show .menu-panel {
+      right: 0;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #F0F0F0;
+      margin-bottom: 20px;
+    }
+
+    .menu-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2E2E2E;
+    }
+
+    .close-menu {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-color: #F0F0F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Menu sections */
+    .menu-section {
+      margin-bottom: 30px;
+    }
+
+    .menu-section-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #5DA9A4;
+      margin-bottom: 15px;
+      padding-left: 10px;
+    }
+
+    .menu-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background-color: #F8F8F8;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #2E2E2E;
+      transition: all 0.2s;
+      border: none;
+      width: 100%;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .menu-item:active {
+      transform: scale(0.98);
+      background-color: #F0F0F0;
+    }
+
+    .menu-item-icon {
+      font-size: 28px;
+      width: 44px;
+      height: 44px;
+      background-color: #F4C430;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+    }
+
+    .menu-item-content {
+      flex: 1;
+      text-align: left;
+    }
+
+    .menu-item-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .menu-item-desc {
+      font-size: 16px;
+      color: #6B6B6B;
+    }
+
+    /* Settings inside menu */
+    .setting-item {
+      padding: 15px;
+      background-color: #F8F8F8;
+      border-radius: 20px;
+      margin-bottom: 15px;
+    }
+
+    .setting-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .setting-icon {
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      background-color: #5DA9A4;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+    }
+
+    .setting-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2E2E2E;
+    }
+
+    .setting-control {
+      padding-left: 56px;
+    }
+
+    /* Option buttons */
+    .option-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .option-btn {
+      padding: 12px 20px;
+      border-radius: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid #E0E0E0;
+      font-size: 18px;
+      font-weight: 500;
+      color: #2E2E2E;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .option-btn.active {
+      background-color: #F4C430;
+      color: #FFFFFF;
+      border-color: #F4C430;
+    }
+
+    /* Slider */
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .menu-slider {
+      flex: 1;
+      height: 10px;
+      -webkit-appearance: none;
+      background: #E0E0E0;
+      border-radius: 20px;
+    }
+
+    .menu-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      background: #F4C430;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .slider-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #5DA9A4;
+      min-width: 50px;
+    }
+
+    /* Small note */
+    .small-note {
+      text-align: center;
+      color: #6B6B6B;
+      font-size: 16px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+
+    <!-- ========== HEADER ========== -->
+    <div class="header-row">
+      <div class="greeting" id="greeting">Vanakkam Lakshmi 👵</div>
+      <div class="header-right">
+        <div class="lang-pill" id="langPill">
+          <button class="lang-option active" data-lang="ta">தமிழ்</button>
+          <button class="lang-option" data-lang="en">EN</button>
+        </div>
+        <button class="menu-btn" id="menuBtn">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== DEVICE GRID ========== -->
+    <div class="device-grid">
+      <a href="device-control.html?device=light" class="device-card">
+        <div class="card-icon">💡</div>
+        <div class="device-name" data-i18n="light">Light</div>
+        <div class="device-status">
+          <span class="status-dot on"></span>
+          <span class="status-text on" data-i18n="on">ON</span>
+        </div>
+      </a>
+      <a href="device-control.html?device=tv" class="device-card">
+        <div class="card-icon">📺</div>
+        <div class="device-name" data-i18n="tv">TV</div>
+        <div class="device-status">
+          <span class="status-dot"></span>
+          <span class="status-text" data-i18n="off">OFF</span>
+        </div>
+      </a>
+      <a href="device-control.html?device=fan" class="device-card">
+        <div class="card-icon">🌀</div>
+        <div class="device-name" data-i18n="fan">Fan</div>
+        <div class="device-status">
+          <span class="status-dot on"></span>
+          <span class="status-text on" data-i18n="on">ON</span>
+        </div>
+      </a>
+      <a href="device-control.html?device=ac" class="device-card">
+        <div class="card-icon">❄️</div>
+        <div class="device-name" data-i18n="ac">AC</div>
+        <div class="device-status">
+          <span class="status-dot"></span>
+          <span class="status-text" data-i18n="off">OFF</span>
+        </div>
+      </a>
+      <a href="device-control.html?device=plug" class="device-card">
+        <div class="card-icon">🔌</div>
+        <div class="device-name" data-i18n="plug">Plug</div>
+        <div class="device-status">
+          <span class="status-dot on"></span>
+          <span class="status-text on" data-i18n="on">ON</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="small-note">👆 tap any device to control · ☰ menu for all modes</div>
+  </div>
+
+  <!-- ========== HAMBURGER MENU OVERLAY ========== -->
+  <div class="menu-overlay" id="menuOverlay">
+    <div class="menu-panel">
+      <div class="menu-header">
+        <div class="menu-title">Menu</div>
+        <button class="close-menu" id="closeMenu">✕</button>
+      </div>
+
+      <!-- MODES SECTION -->
+      <div class="menu-section">
+        <div class="menu-section-title">✨ Modes</div>
+        <div class="menu-items">
+          <a href="voice-mode.html" class="menu-item">
+            <span class="menu-item-icon">🎤</span>
+            <div class="menu-item-content">
+              <div class="menu-item-title">Voice Mode</div>
+              <div class="menu-item-desc">Control with your voice</div>
+            </div>
+          </a>
+          <a href="gesture-mode.html" class="menu-item">
+            <span class="menu-item-icon">✋</span>
+            <div class="menu-item-content">
+              <div class="menu-item-title">Gesture Mode</div>
+              <div class="menu-item-desc">Wave to control devices</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- SERVICES SECTION -->
+      <div class="menu-section">
+        <div class="menu-section-title">🛍️ Services</div>
+        <div class="menu-items">
+          <a href="grocery.html" class="menu-item">
+            <span class="menu-item-icon">🛒</span>
+            <div class="menu-item-content">
+              <div class="menu-item-title">Grocery</div>
+              <div class="menu-item-desc">Order your groceries</div>
+            </div>
+          </a>
+          <a href="family-connect.html" class="menu-item">
+            <span class="menu-item-icon">👨‍👩‍👧</span>
+            <div class="menu-item-content">
+              <div class="menu-item-title">Family Connect</div>
+              <div class="menu-item-desc">Call family members</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- SETTINGS SECTION -->
+      <div class="menu-section">
+        <div class="menu-section-title">⚙️ Settings</div>
+        
+        <!-- Language Setting -->
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-icon">🌐</span>
+            <span class="setting-title">Language</span>
+          </div>
+          <div class="setting-control">
+            <div class="option-group">
+              <button class="option-btn" data-lang="ta">தமிழ்</button>
+              <button class="option-btn" data-lang="en">English</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Size -->
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-icon">🔤</span>
+            <span class="setting-title">Text Size</span>
+          </div>
+          <div class="setting-control">
+            <div class="slider-container">
+              <input type="range" min="16" max="36" value="24" class="menu-slider" id="textSizeSlider">
+              <span class="slider-value" id="textSizeValue">24px</span>
+            </div>
+            <div class="option-group" style="margin-top: 10px;">
+              <button class="option-btn text-preset" data-size="16">Small</button>
+              <button class="option-btn text-preset" data-size="24">Medium</button>
+              <button class="option-btn text-preset" data-size="32">Large</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Volume -->
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-icon">🔊</span>
+            <span class="setting-title">Volume</span>
+          </div>
+          <div class="setting-control">
+            <div class="slider-container">
+              <input type="range" min="0" max="100" value="70" class="menu-slider" id="volumeSlider">
+              <span class="slider-value" id="volumeValue">70%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interaction Preference -->
+        <div class="setting-item">
+          <div class="setting-header">
+            <span class="setting-icon">👆</span>
+            <span class="setting-title">Interaction</span>
+          </div>
+          <div class="setting-control">
+            <div class="option-group">
+              <button class="option-btn" data-interaction="tap">Tap</button>
+              <button class="option-btn" data-interaction="voice">Voice</button>
+              <button class="option-btn" data-interaction="gesture">Gesture</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ==================== GLOBAL SETTINGS ====================
+      const defaultSettings = {
+        language: 'ta',
+        textSize: 24,
+        volume: 70,
+        interaction: 'tap'
+      };
+
+      // Load settings
+      let settings = { ...defaultSettings };
+      try {
+        const saved = localStorage.getItem('harmonyHubSettings');
+        if (saved) {
+          settings = { ...defaultSettings, ...JSON.parse(saved) };
+        }
+      } catch (e) {}
+
+      // Translations
+      const translations = {
+        ta: {
+          'light': 'லைட்',
+          'fan': 'ஃபேன்',
+          'tv': 'டிவி',
+          'ac': 'ஏசி',
+          'plug': 'ப்ளக்',
+          'on': 'ஆன்',
+          'off': 'ஆஃப்',
+          'greeting': 'வணக்கம் லட்சுமி 👵'
+        },
+        en: {
+          'light': 'Light',
+          'fan': 'Fan',
+          'tv': 'TV',
+          'ac': 'AC',
+          'plug': 'Plug',
+          'on': 'ON',
+          'off': 'OFF',
+          'greeting': 'Hello Lakshmi 👵'
+        }
+      };
+
+      // Save settings
+      function saveSettings() {
+        localStorage.setItem('harmonyHubSettings', JSON.stringify(settings));
+        applySettings();
+        
+        // Dispatch event for other pages
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'harmonyHubSettings',
+          newValue: JSON.stringify(settings)
+        }));
+      }
+
+      // Apply settings to current page
+      function applySettings() {
+        // Text size
+        document.body.style.fontSize = settings.textSize + 'px';
+        document.body.classList.remove('text-small', 'text-medium', 'text-large');
+        if (settings.textSize <= 18) {
+          document.body.classList.add('text-small');
+        } else if (settings.textSize <= 26) {
+          document.body.classList.add('text-medium');
+        } else {
+          document.body.classList.add('text-large');
+        }
+
+        // Language
+        const greeting = document.getElementById('greeting');
+        if (greeting) {
+          greeting.textContent = translations[settings.language].greeting;
+        }
+
+        // Update all translatable elements
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.dataset.i18n;
+          if (translations[settings.language] && translations[settings.language][key]) {
+            if (el.classList.contains('status-text')) {
+              if (el.classList.contains('on')) {
+                el.textContent = translations[settings.language][key];
+              } else {
+                el.textContent = translations[settings.language][key];
+              }
+            } else {
+              el.textContent = translations[settings.language][key];
+            }
+          }
+        });
+
+        // Update language pills
+        document.querySelectorAll('[data-lang]').forEach(el => {
+          if (el.dataset.lang === settings.language) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        });
+
+        // Update text size slider
+        const textSizeSlider = document.getElementById('textSizeSlider');
+        const textSizeValue = document.getElementById('textSizeValue');
+        if (textSizeSlider && textSizeValue) {
+          textSizeSlider.value = settings.textSize;
+          textSizeValue.textContent = settings.textSize + 'px';
+        }
+
+        // Update text size preset buttons
+        document.querySelectorAll('.text-preset').forEach(btn => {
+          if (parseInt(btn.dataset.size) === settings.textSize) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Update volume
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        if (volumeSlider && volumeValue) {
+          volumeSlider.value = settings.volume;
+          volumeValue.textContent = settings.volume + '%';
+        }
+
+        // Update interaction buttons
+        document.querySelectorAll('[data-interaction]').forEach(btn => {
+          if (btn.dataset.interaction === settings.interaction) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      // ========== MENU CONTROLS ==========
+      const menuOverlay = document.getElementById('menuOverlay');
+      const menuBtn = document.getElementById('menuBtn');
+      const closeMenu = document.getElementById('closeMenu');
+
+      menuBtn.addEventListener('click', () => {
+        menuOverlay.classList.add('show');
+      });
+
+      closeMenu.addEventListener('click', () => {
+        menuOverlay.classList.remove('show');
+      });
+
+      menuOverlay.addEventListener('click', (e) => {
+        if (e.target === menuOverlay) {
+          menuOverlay.classList.remove('show');
+        }
+      });
+
+      // ========== SETTINGS EVENT LISTENERS ==========
+      
+      // Language
+      document.querySelectorAll('[data-lang]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          settings.language = btn.dataset.lang;
+          saveSettings();
+        });
+      });
+
+      // Text size slider
+      const textSizeSlider = document.getElementById('textSizeSlider');
+      textSizeSlider.addEventListener('input', () => {
+        settings.textSize = parseInt(textSizeSlider.value);
+        saveSettings();
+      });
+
+      // Text size presets
+      document.querySelectorAll('.text-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          settings.textSize = parseInt(btn.dataset.size);
+          saveSettings();
+        });
+      });
+
+      // Volume slider
+      const volumeSlider = document.getElementById('volumeSlider');
+      volumeSlider.addEventListener('input', () => {
+        settings.volume = parseInt(volumeSlider.value);
+        saveSettings();
+      });
+
+      // Interaction preference
+      document.querySelectorAll('[data-interaction]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          settings.interaction = btn.dataset.interaction;
+          saveSettings();
+        });
+      });
+
+      // Listen for storage changes (for multi-page sync)
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'harmonyHubSettings') {
+          try {
+            settings = JSON.parse(e.newValue);
+            applySettings();
+          } catch (err) {}
+        }
+      });
+
+      // Initial apply
+      applySettings();
+
+      // Tap simulation
+      document.querySelectorAll('.device-card, .menu-item, .option-btn, .lang-option').forEach(el => {
+        el.addEventListener('click', () => console.log('tap'));
+      });
+
+    })();
+  </script>
+</body>
+</html>

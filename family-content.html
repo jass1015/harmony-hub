@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>Harmony Hub · family connect · Lakshmi Paati</title>
+  <style>
+    /* GLOBAL RESET & DESIGN TOKENS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      /* warm beige with subtle heart-toned gradient */
+      background: linear-gradient(145deg, #F9E5D8 0%, #FADCD9 50%, #FFE0E8 100%);
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      margin: 0;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* shake animation for emergency */
+    @keyframes gentleShake {
+      0% { transform: translateX(0); }
+      15% { transform: translateX(-8px); }
+      30% { transform: translateX(8px); }
+      45% { transform: translateX(-5px); }
+      60% { transform: translateX(5px); }
+      75% { transform: translateX(-3px); }
+      90% { transform: translateX(3px); }
+      100% { transform: translateX(0); }
+    }
+
+    body.emergency-shake {
+      animation: gentleShake 0.5s ease-in-out;
+    }
+
+    /* main container – fully responsive */
+    .family-connect {
+      width: 100%;
+      max-width: 700px;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 16px 12px 100px; /* bottom padding for fixed emergency button */
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* 🔝 HEADER with back arrow */
+    .header-control {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .back-arrow {
+      font-size: clamp(36px, 10vw, 48px);
+      line-height: 1;
+      color: #2E2E2E;
+      text-decoration: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 8px 8px 0;
+      background: none;
+      border: none;
+      opacity: 0.8;
+    }
+
+    .back-arrow:active {
+      transform: scale(0.9);
+    }
+
+    .header-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #2E2E2E;
+      font-size: clamp(26px, 7vw, 36px);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 380px) {
+      .header-title {
+        font-size: 24px;
+        white-space: normal;
+        text-align: center;
+        width: 100%;
+        position: static;
+        transform: none;
+        margin-left: 10px;
+      }
+      .header-control {
+        justify-content: flex-start;
+      }
+    }
+
+    /* 👨‍👩‍👧 FAMILY CARDS GRID */
+    .family-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px 20px;
+      margin: 20px 0 30px;
+    }
+
+    @media (max-width: 450px) {
+      .family-grid {
+        gap: 20px 15px;
+      }
+    }
+
+    /* family card */
+    .family-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(5px);
+      border-radius: 40px;
+      padding: 25px 15px 20px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    /* large circular photo */
+    .family-photo {
+      width: clamp(120px, 30vw, 160px);
+      height: clamp(120px, 30vw, 160px);
+      border-radius: 50%;
+      background: linear-gradient(145deg, #FFE0E8, #FFD9E0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      border: 4px solid #FFFFFF;
+    }
+
+    .photo-emoji {
+      font-size: clamp(60px, 15vw, 80px);
+      filter: drop-shadow(0 5px 8px rgba(0,0,0,0.1));
+    }
+
+    .family-name {
+      font-size: clamp(24px, 6vw, 30px);
+      font-weight: 600;
+      color: #2E2E2E;
+      margin-bottom: 10px;
+    }
+
+    .family-relation {
+      font-size: 20px;
+      color: #6B6B6B;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    /* call button - teal */
+    .call-btn {
+      background-color: #5DA9A4; /* muted teal */
+      border: none;
+      border-radius: 50px;
+      padding: 15px 35px;
+      font-size: 26px;
+      font-weight: 600;
+      color: #FFFFFF;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 10px 20px rgba(93, 169, 164, 0.25);
+      transition: all 0.2s ease;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    .call-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 5px 10px rgba(93, 169, 164, 0.3);
+    }
+
+    .call-btn .call-icon {
+      font-size: 28px;
+    }
+
+    /* spacing for bottom emergency button */
+    .spacer {
+      flex: 1;
+    }
+
+    /* 🚨 EMERGENCY BUTTON - fixed at bottom */
+    .emergency-container {
+      position: sticky;
+      bottom: 20px;
+      width: 100%;
+      padding: 10px 0;
+      margin-top: auto;
+    }
+
+    .emergency-btn {
+      background-color: #E57373; /* soft red */
+      border: none;
+      border-radius: 40px;
+      height: 90px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-size: clamp(32px, 8vw, 40px);
+      font-weight: 700;
+      box-shadow: 0 20px 40px rgba(229, 115, 115, 0.4);
+      transition: all 0.3s ease-in-out;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border: 2px solid rgba(255,255,255,0.3);
+      letter-spacing: 1px;
+      gap: 15px;
+    }
+
+    .emergency-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 15px 30px rgba(229, 115, 115, 0.5);
+    }
+
+    .emergency-icon {
+      font-size: 48px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    /* MODAL / CONFIRMATION DIALOG */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background-color: #FFFFFF;
+      border-radius: 60px;
+      padding: 40px 30px;
+      max-width: 90%;
+      width: 450px;
+      text-align: center;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+      border: 3px solid rgba(229, 115, 115, 0.2);
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      font-size: 70px;
+      margin-bottom: 20px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .modal-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #E57373;
+      margin-bottom: 15px;
+    }
+
+    .modal-text {
+      font-size: 28px;
+      font-weight: 500;
+      color: #2E2E2E;
+      margin-bottom: 30px;
+    }
+
+    .modal-subtext {
+      font-size: 22px;
+      color: #6B6B6B;
+      margin-bottom: 30px;
+    }
+
+    .modal-btn {
+      background-color: #5DA9A4;
+      border: none;
+      border-radius: 50px;
+      padding: 18px 40px;
+      font-size: 26px;
+      font-weight: 600;
+      color: #FFFFFF;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s;
+      border: 1px solid rgba(255,255,255,0.3);
+      min-width: 200px;
+    }
+
+    .modal-btn:active {
+      transform: scale(0.95);
+      background-color: #4A8B86;
+    }
+
+    .modal-btn.secondary {
+      background-color: #D3D3D3;
+      color: #2E2E2E;
+      margin-top: 15px;
+    }
+
+    /* TOAST for call notifications */
+    .toast-message {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background-color: #5DA9A4;
+      color: #FFFFFF;
+      font-size: 24px;
+      font-weight: 500;
+      padding: 18px 36px;
+      border-radius: 60px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out, visibility 0.4s;
+      z-index: 1500;
+      white-space: nowrap;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast-message.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 450px) {
+      .toast-message {
+        font-size: 20px;
+        padding: 16px 28px;
+        bottom: 100px;
+      }
+    }
+
+    /* small note */
+    .note {
+      font-size: 18px;
+      color: #6B6B6B;
+      text-align: center;
+      margin-top: 30px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="family-connect">
+
+    <!-- 🔝 HEADER with back arrow to dashboard -->
+    <div class="header-control">
+      <a href="dashboard.html" class="back-arrow" id="backArrow" aria-label="Go back to dashboard">←</a>
+      <div class="header-title">Family Connect</div>
+    </div>
+
+    <!-- 👨‍👩‍👧 FAMILY CARDS GRID -->
+    <div class="family-grid">
+      <!-- Family Member 1: Daughter -->
+      <div class="family-card">
+        <div class="family-photo">
+          <div class="photo-emoji">👩‍🦰</div>
+        </div>
+        <div class="family-name">Priya</div>
+        <div class="family-relation">Daughter</div>
+        <button class="call-btn" data-family="Priya">
+          <span class="call-icon">📞</span> Call
+        </button>
+      </div>
+
+      <!-- Family Member 2: Son -->
+      <div class="family-card">
+        <div class="family-photo">
+          <div class="photo-emoji">👨‍🦱</div>
+        </div>
+        <div class="family-name">Arjun</div>
+        <div class="family-relation">Son</div>
+        <button class="call-btn" data-family="Arjun">
+          <span class="call-icon">📞</span> Call
+        </button>
+      </div>
+
+      <!-- Family Member 3: Granddaughter -->
+      <div class="family-card">
+        <div class="family-photo">
+          <div class="photo-emoji">👧</div>
+        </div>
+        <div class="family-name">Nila</div>
+        <div class="family-relation">Granddaughter</div>
+        <button class="call-btn" data-family="Nila">
+          <span class="call-icon">📞</span> Call
+        </button>
+      </div>
+
+      <!-- Family Member 4: Doctor -->
+      <div class="family-card">
+        <div class="family-photo">
+          <div class="photo-emoji">👩‍⚕️</div>
+        </div>
+        <div class="family-name">Dr. Kumar</div>
+        <div class="family-relation">Family Doctor</div>
+        <button class="call-btn" data-family="Dr. Kumar">
+          <span class="call-icon">📞</span> Call
+        </button>
+      </div>
+    </div>
+
+    <!-- spacer to push emergency button to bottom -->
+    <div class="spacer"></div>
+
+    <!-- 🚨 EMERGENCY BUTTON - fixed at bottom -->
+    <div class="emergency-container">
+      <button class="emergency-btn" id="emergencyBtn">
+        <span class="emergency-icon">🆘</span>
+        SOS EMERGENCY
+      </button>
+    </div>
+
+    <!-- small note -->
+    <div class="note">tap any family member to call · emergency for help</div>
+  </div>
+
+  <!-- MODAL for emergency confirmation -->
+  <div class="modal-overlay" id="emergencyModal">
+    <div class="modal-content">
+      <div class="modal-icon">🚨</div>
+      <div class="modal-title">Emergency!</div>
+      <div class="modal-text">Calling now...</div>
+      <div class="modal-subtext">Contacting family and emergency services</div>
+      <button class="modal-btn" id="modalOkBtn">OK</button>
+      <button class="modal-btn secondary" id="modalCancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TOAST for call notifications -->
+  <div class="toast-message" id="toast">Calling...</div>
+
+  <script>
+    (function() {
+      // DOM elements
+      const emergencyBtn = document.getElementById('emergencyBtn');
+      const emergencyModal = document.getElementById('emergencyModal');
+      const modalOkBtn = document.getElementById('modalOkBtn');
+      const modalCancelBtn = document.getElementById('modalCancelBtn');
+      const toast = document.getElementById('toast');
+      const bodyEl = document.body;
+      const backArrow = document.getElementById('backArrow');
+      const callButtons = document.querySelectorAll('.call-btn');
+
+      // State
+      let toastTimeout;
+      let currentCall = null;
+
+      // Show toast function
+      function showToast(message, isEmergency = false) {
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toast.textContent = message;
+        toast.style.backgroundColor = isEmergency ? '#E57373' : '#5DA9A4';
+        toast.classList.add('show');
+        
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2500);
+      }
+
+      // Show modal function
+      function showModal() {
+        emergencyModal.classList.add('show');
+        
+        // Gentle shake animation
+        bodyEl.classList.add('emergency-shake');
+        setTimeout(() => {
+          bodyEl.classList.remove('emergency-shake');
+        }, 500);
+      }
+
+      // Hide modal function
+      function hideModal() {
+        emergencyModal.classList.remove('show');
+      }
+
+      // Emergency button click
+      emergencyBtn.addEventListener('click', () => {
+        console.log('Emergency button pressed');
+        showModal();
+      });
+
+      // Modal OK button
+      modalOkBtn.addEventListener('click', () => {
+        hideModal();
+        showToast('Emergency services contacted 🆘', true);
+      });
+
+      // Modal Cancel button
+      modalCancelBtn.addEventListener('click', () => {
+        hideModal();
+        showToast('Emergency cancelled', false);
+      });
+
+      // Call buttons for family members
+      callButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const familyName = btn.dataset.family || 'family member';
+          console.log(`Calling ${familyName}...`);
+          showToast(`Calling ${familyName}... 📞`, false);
+          
+          // Add a small animation to the button
+          btn.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            btn.style.transform = '';
+          }, 200);
+        });
+      });
+
+      // Close modal if clicking outside (optional)
+      emergencyModal.addEventListener('click', (e) => {
+        if (e.target === emergencyModal) {
+          hideModal();
+        }
+      });
+
+      // Back arrow navigation
+      backArrow.addEventListener('click', (e) => {
+        console.log('navigating to dashboard.html');
+      });
+
+      // Add tap simulation for all buttons
+      const allButtons = document.querySelectorAll('button, .call-btn, .emergency-btn, .modal-btn');
+      allButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          console.log('tap simulated');
+        });
+      });
+
+    })();
+  </script>
+
+  <!-- design fully respects:
+    - Background: warm beige with subtle heart-toned gradient (#F9E5D8 → #FADCD9 → #FFE0E8)
+    - Family cards: large circular photos (emoji fallback)
+    - Below photo: Call button (teal #5DA9A4)
+    - Spacing generous between cards
+    - Emergency button: very large, soft red (#E57373), white text
+    - Fixed at bottom (sticky)
+    - Micro interaction: gentle screen shake + confirmation modal "Calling now..."
+    - Fully responsive (2-column grid on all screens)
+    - Back arrow to dashboard.html
+    - Toast notifications for regular calls
+  -->
+</body>
+</html>
